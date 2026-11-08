@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173448">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png"><title>مصاريفي اليومية</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:14px;max-width:780px;margin:auto;background:#f3f6f8;color:#1d2b34;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
+header{background:#173448;color:#fff;padding:20px;border-radius:17px;margin-bottom:13px}h1{margin:0 0 5px;font-size:24px}h2{font-size:18px;margin:0 0 12px}.muted{color:#6b7b85;font-size:13px}.card{background:#fff;border:1px solid #e1e8ed;border-radius:15px;padding:15px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{background:#f4f8fa;padding:11px;border-radius:11px}.stat small{display:block;color:#667782;font-size:12px}.stat b{display:block;font-size:19px;margin-top:4px}
+label{display:block;font-size:13px;color:#53636e;margin:9px 0 5px}input,select,button{font:inherit;width:100%;padding:10px;border:1px solid #ccd7df;border-radius:9px;background:#fff;color:#1d2b34}button{border:0;background:#176b58;color:#fff;font-weight:650;margin-top:10px;cursor:pointer}.secondary{background:#eaf0f3;color:#263b49}.danger{background:#fff0ef;color:#a12c25}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}.tabs button{width:auto;flex:1;margin:0;background:#e8eef1;color:#27404f}.tabs button.active{background:#176b58;color:white}.entry{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #edf1f3;padding:10px 0}.entry:last-child{border:0}.entry small{display:block;color:#71808a}.entry button{width:auto;margin:0;padding:6px 9px;font-size:12px}.calendar{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.day{border:1px solid #e2e9ed;border-radius:11px;padding:12px;min-height:76px;background:#fbfdfe;width:100%}.dayhead{display:flex;justify-content:space-between;font-weight:700}.pill{display:inline-block;background:#edf3f5;padding:4px 8px;border-radius:18px;font-size:12px;margin:3px}.positive{color:#167253}.negative{color:#a12c25}.day ul{padding-right:15px;margin:7px 0 0;font-size:12px}.day li{margin:3px 0}.hidden{display:none}.plan-result{background:#f4f8fa;border-radius:11px;padding:12px;margin-top:12px}.plan-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}.plan-table th,.plan-table td{padding:8px 5px;border-bottom:1px solid #e1e8ed;text-align:right}.plan-table th{color:#53636e}.plan-day{font-weight:700}.plan-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.plan-summary .stat b{font-size:17px}footer{text-align:center;color:#71808a;font-size:12px;padding:15px}
+</style></head>
+<body>
+<header><h1>مصاريفي اليومية</h1><div style="opacity:.85;font-size:13px">ميزانيتك ومصاريفك والسلف — اختر الشهر والسنة</div></header>
+
+<section class="card">
+<h2>ملخص أموالك</h2>
+<div class="grid">
+<div class="stat"><small>النقد المتوفر معك</small><b id="cash">12,450</b></div>
+<div class="stat"><small>المتبقي من ميزانية الشهر المحدد</small><b id="budgetLeft">13,900</b></div>
+<div class="stat"><small>مصروفات الشهر المحدد</small><b id="spent">0</b></div>
+<div class="stat"><small>لك عند الآخرين</small><b id="owedToMe">0</b></div>
+<div class="stat"><small>عليك للآخرين</small><b id="iOwe">0</b></div>
+<div class="stat"><small>صافي أموالك* </small><b id="net">12,450</b></div>
+</div>
+<p class="muted">* صافي أموالك = النقد المتوفر + السلف المستحقة لك − الديون المستحقة عليك.</p>
+<div class="row">
+<div><label>رصيد البداية</label><input id="start" type="number" min="0"></div>
+<div><label>الميزانية الإجمالية للفترة</label><input id="budget" type="number" min="0"></div>
+</div>
+<div class="row">
+<div><label>من يوم</label><input id="from" type="number" min="1" max="30"></div>
+<div><label>إلى يوم</label><input id="to" type="number" min="1" max="30"></div>
+</div>
+<button id="saveSettings">حفظ الإعدادات</button>
+<p class="muted">السلف والديون تؤثر في النقد المتوفر، لكنها لا تُحسب مصروفات شخصية ولا تُنقص ميزانية المصروفات.</p>
+</section>
+
+<section class="card">
+<h2>مخطط تقسيم المبلغ</h2>
+<p class="muted">أدخل المبلغ وتاريخ البداية، وسيحسب البرنامج كم يوماً يكفيك حسب مصروفاتك الثابتة وأيام الجمعة والسبت.</p>
+<label for="planAmount">المبلغ الموجود معك (ريال)</label>
+<input id="planAmount" type="number" min="0" value="15000" placeholder="مثلاً 15000">
+<label for="planStart">تاريخ بداية الصرف</label>
+<input id="planStart" type="date">
+<div class="stat" style="margin-top:10px">
+<small>المصروف المتوقع</small>
+<div class="muted">الأحد إلى الخميس: 1,500 ريال يومياً — الجمعة والسبت: 1,000 ريال يومياً.</div>
+</div>
+<button id="calculatePlan">احسب كم يوماً يكفيني</button>
+<div id="planOutput" class="hidden"></div>
+</section>
+
+<section class="card">
+<div class="tabs">
+<button class="active" data-tab="expense">مصروف شخصي</button>
+<button data-tab="lend">سلفت شخصاً</button>
+<button data-tab="borrow">استلفت مبلغاً</button>
+</div>
+<div id="expense">
+<h2>تسجيل مصروف شخصي</h2>
+<div class="row"><div><label>اليوم</label><select id="expenseDay"></select></div><div><label>نوع المصروف</label><select id="category"><option>قات</option><option>كرت</option><option>ماء</option><option>مشاوير</option><option>صبوح</option><option>أخرى</option></select></div></div>
+<label>المبلغ (ريال)</label><input id="expenseAmount" type="number" min="1" placeholder="مثلاً 700">
+<label>ملاحظة (اختياري)</label><input id="expenseNote" placeholder="تفاصيل المصروف">
+<button id="addExpense">تسجيل المصروف</button>
+</div>
+<div id="lend" class="hidden">
+<h2>تسجيل مبلغ أقرضته لشخص</h2>
+<label>اسم الشخص</label><input id="lendName" placeholder="اسم الشخص">
+<label>المبلغ (ريال)</label><input id="lendAmount" type="number" min="1" placeholder="المبلغ">
+<label>ملاحظة (اختياري)</label><input id="lendNote" placeholder="سبب السلفة أو موعد الإرجاع">
+<button id="addLend">تسجيل السلفة</button>
+<p class="muted">ينقص المبلغ من النقد المتوفر ويضاف إلى «لك عند الآخرين».</p>
+</div>
+<div id="borrow" class="hidden">
+<h2>تسجيل مبلغ استلفته</h2>
+<label>اسم الشخص الذي استلفت منه</label><input id="borrowName" placeholder="اسم الشخص">
+<label>المبلغ (ريال)</label><input id="borrowAmount" type="number" min="1" placeholder="المبلغ">
+<label>ملاحظة (اختياري)</label><input id="borrowNote" placeholder="سبب الاستلاف أو موعد السداد">
+<button id="addBorrow">تسجيل الدين</button>
+<p class="muted">يزيد النقد المتوفر ويضاف المبلغ إلى «عليك للآخرين».</p>
+</div>
+</section>
+
+<section class="card"><h2>السلف والديون المفتوحة</h2><div id="loans"></div></section>
+<section class="card"><h2>التقويم الشهري</h2>
+<div class="row">
+<div><label for="monthSelect">الشهر</label><select id="monthSelect">
+<option value="1">يناير</option><option value="2">فبراير</option><option value="3">مارس</option><option value="4">أبريل</option><option value="5">مايو</option><option value="6">يونيو</option><option value="7">يوليو</option><option value="8">أغسطس</option><option value="9">سبتمبر</option><option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+</select></div>
+<div><label for="yearSelect">السنة</label><select id="yearSelect"><option>2026</option><option>2027</option><option>2028</option><option>2029</option><option>2030</option></select></div>
+</div>
+<p class="muted">كل يوم في مربع مستقل. عند تغيير الشهر يتغير عدد الأيام تلقائياً، وتبقى مصروفات كل شهر محفوظة في شهرها.</p>
+<div id="calendar" class="calendar"></div></section>
+<section class="card">
+<h2>النسخ الاحتياطي</h2><p class="muted">صدّر نسخة احتياطية بانتظام، خصوصاً قبل تغيير الهاتف أو مسح بيانات المتصفح.</p>
+<div class="row"><button class="secondary" id="export">تصدير نسخة</button><button class="secondary" id="importBtn">استيراد نسخة</button></div><input id="file" type="file" accept="application/json" class="hidden">
+<button class="danger" id="reset">حذف جميع البيانات وإعادة الضبط</button>
+</section><footer>تُحفظ البيانات على هذا الجهاز والمتصفح فقط.</footer>
+<script>
+const $=id=>document.getElementById(id);
+const base={start:12450,budget:13900,from:1,to:30,selectedMonth:11,selectedYear:2026,expenses:[],loans:[]};
+let s;try{s=JSON.parse(localStorage.getItem('my-expenses-debts-v2'))||structuredClone(base)}catch(e){s=structuredClone(base)}
+s={...base,...s};
+s.expenses=(s.expenses||[]).map(e=>({...e,month:e.month||11,year:e.year||2026}));
+const fmt=n=>Math.round(n).toLocaleString('en-US')+' ريال';
+function persist(){localStorage.setItem('my-expenses-debts-v2',JSON.stringify(s));render()}
+function openLoanTotal(type){return s.loans.filter(x=>x.type===type).reduce((a,x)=>a+x.remaining,0)}
+function render(){
+$('start').value=s.start;$('budget').value=s.budget;$('from').value=s.from;$('to').value=s.to;
+const month=Number(s.selectedMonth),year=Number(s.selectedYear);
+const monthExpenses=s.expenses.filter(x=>Number(x.month)===month&&Number(x.year)===year);
+const monthSpent=monthExpenses.reduce((a,x)=>a+x.amount,0);
+const allSpent=s.expenses.reduce((a,x)=>a+x.amount,0);
+const lent=openLoanTotal('lent'),borrowed=openLoanTotal('borrowed');
+const cash=s.start-allSpent-s.loans.filter(x=>x.type==='lent').reduce((a,x)=>a+x.principal,0)+s.loans.filter(x=>x.type==='borrowed').reduce((a,x)=>a+x.principal,0)
++s.loans.reduce((a,x)=>a+(x.type==='lent'?x.repaid:-x.repaid),0);
+$('cash').textContent=fmt(cash);$('budgetLeft').textContent=fmt(s.budget-monthSpent);$('spent').textContent=fmt(monthSpent);$('owedToMe').textContent=fmt(lent);$('iOwe').textContent=fmt(borrowed);$('net').textContent=fmt(cash+lent-borrowed);
+$('monthSelect').value=String(month);$('yearSelect').value=String(year);
+let monthNames=['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+let daysInMonth=new Date(year,month,0).getDate();
+let day=$('expenseDay'),old=day.value;day.innerHTML='';
+for(let d=1;d<=daysInMonth;d++){let o=document.createElement('option');o.value=d;o.textContent='اليوم '+d+' '+monthNames[month];day.append(o)}
+if(old>=1&&old<=daysInMonth)day.value=old;
+$('calendar').innerHTML='';
+for(let d=1;d<=daysInMonth;d++){
+ let box=document.createElement('div');box.className='day';
+ let head=document.createElement('div');head.className='dayhead';head.textContent=''+d+' '+monthNames[month];box.append(head);
+ let entries=s.expenses.map((e,i)=>({...e,index:i})).filter(e=>Number(e.day)===d&&Number(e.month)===month&&Number(e.year)===year);
+ let total=entries.reduce((a,e)=>a+e.amount,0);
+ let sum=document.createElement('div');sum.className='muted';sum.style.marginTop='5px';sum.textContent=total?fmt(total):'لا مصروفات';box.append(sum);
+ if(entries.length){let ul=document.createElement('ul');entries.forEach(e=>{let li=document.createElement('li');li.textContent=e.category+': '+fmt(e.amount);li.title=e.note||'';ul.append(li)});box.append(ul);
+ let del=document.createElement('button');del.className='secondary';del.textContent='عرض/حذف';del.style.padding='5px';del.style.fontSize='11px';del.onclick=()=>{let choices=entries.map((e,j)=>(j+1)+') '+e.category+' '+fmt(e.amount)+(e.note?' — '+e.note:'')).join('\\n');let pick=Number(prompt('مصروفات يوم '+d+' '+monthNames[month]+' '+year+':\\n'+choices+'\\nاكتب رقم المصروف لحذفه:'));if(pick>=1&&pick<=entries.length){let idx=entries[pick-1].index;if(confirm('تأكيد حذف المصروف؟')){s.expenses.splice(idx,1);persist()}}};box.append(del);
+ }
+ $('calendar').append(box);
+}
+$('loans').innerHTML='';let open=s.loans.map((x,i)=>({...x,index:i})).filter(x=>x.remaining>0);
+if(!open.length)$('loans').textContent='لا توجد سلف أو ديون مفتوحة.';
+open.forEach(x=>{let r=document.createElement('div');r.className='entry';let l=document.createElement('div');l.textContent=(x.type==='lent'?'لك عند ':'عليك لـ ')+x.name;let sm=document.createElement('small');sm.textContent='المبلغ الأصلي: '+fmt(x.principal)+' — المتبقي: '+fmt(x.remaining)+(x.note?' — '+x.note:'');l.append(sm);let actions=document.createElement('div');let b=document.createElement('button');b.textContent=x.type==='lent'?'استلام سداد':'تسديد';b.onclick=()=>settle(x.index);let del=document.createElement('button');del.className='danger';del.textContent='حذف';del.onclick=()=>{if(confirm('حذف سجل السلفة؟ سيُعاد احتساب الرصيد بناءً على السجل المتبقي.')){s.loans.splice(x.index,1);persist()}};actions.append(b,del);r.append(l,actions);$('loans').append(r)});
+}
+function settle(i){let x=s.loans[i],v=Number(prompt('أدخل مبلغ السداد الجزئي أو الكامل. المتبقي: '+x.remaining));if(!Number.isFinite(v)||v<=0||v>x.remaining){alert('أدخل مبلغاً صحيحاً لا يتجاوز المتبقي.');return}x.remaining-=v;x.repaid=(x.repaid||0)+v;persist()}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['expense','lend','borrow'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+$('monthSelect').onchange=()=>{s.selectedMonth=Number($('monthSelect').value);persist()};
+$('yearSelect').onchange=()=>{s.selectedYear=Number($('yearSelect').value);persist()};
+$('saveSettings').onclick=()=>{let start=Number($('start').value),budget=Number($('budget').value),from=Number($('from').value),to=Number($('to').value);if(start<0||budget<0||from<1||to>31||from>to){alert('تحقق من المبالغ والأيام.');return}s.start=start;s.budget=budget;s.from=from;s.to=to;persist()};
+$('addExpense').onclick=()=>{let amount=Number($('expenseAmount').value);if(!amount||amount<=0){alert('أدخل مبلغاً صحيحاً.');return}s.expenses.push({day:Number($('expenseDay').value),month:Number(s.selectedMonth),year:Number(s.selectedYear),category:$('category').value,amount,note:$('expenseNote').value.trim()});$('expenseAmount').value='';$('expenseNote').value='';persist()};
+function addLoan(type){let name=$(type==='lent'?'lendName':'borrowName').value.trim(),amount=Number($(type==='lent'?'lendAmount':'borrowAmount').value),note=$(type==='lent'?'lendNote':'borrowNote').value.trim();if(!name||!amount||amount<=0){alert('أدخل اسم الشخص ومبلغاً صحيحاً.');return}s.loans.push({type,name,principal:amount,remaining:amount,repaid:0,note});['Name','Amount','Note'].forEach(k=>$(type==='lent'?'lend':'borrow').querySelector('#'+(type==='lent'?'lend':'borrow')+k).value='');persist()}
+$('addLend').onclick=()=>addLoan('lent');$('addBorrow').onclick=()=>addLoan('borrowed');
+$('export').onclick=()=>{let a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(s,null,2)],{type:'application/json'}));a.href=u;a.download='my-expenses-backup.json';a.click();URL.revokeObjectURL(u)};
+$('importBtn').onclick=()=>$('file').click();$('file').onchange=async e=>{try{let v=JSON.parse(await e.target.files[0].text());if(!Array.isArray(v.expenses)||!Array.isArray(v.loans))throw 0;s={...base,...v};persist();alert('تم استيراد النسخة.')}catch(err){alert('الملف غير صالح.')}e.target.value=''};
+$('reset').onclick=()=>{if(confirm('سيتم حذف جميع المصروفات والسلف والديون. هل أنت متأكد؟')){s=structuredClone(base);persist()}};
+
+const planDayNames=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+function localISODate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function calculatePlan(){
+ const amount=Number($('planAmount').value),dateValue=$('planStart').value,out=$('planOutput');
+ if(!Number.isFinite(amount)||amount<=0||!dateValue){alert('أدخل مبلغاً أكبر من صفر وحدد تاريخ البداية.');return}
+ const [y,m,d]=dateValue.split('-').map(Number);
+ let date=new Date(y,m-1,d,12,0,0),balance=amount,fullyCovered=0,spent=0,rows=[];
+ // Calculate at most 3660 days to protect against unreasonable input.
+ for(let i=0;i<3660;i++){
+   const weekday=date.getDay(),cost=(weekday===5||weekday===6)?1000:1500;
+   if(balance<cost)break;
+   balance-=cost;spent+=cost;fullyCovered++;
+   const dateText=date.toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'});
+   rows.push(`<tr><td class="plan-day">${i+1}</td><td>${planDayNames[weekday]}<br><span class="muted">${dateText}</span></td><td>${fmt(cost)}</td><td>${fmt(balance)}</td></tr>`);
+   date.setDate(date.getDate()+1);
+ }
+ const nextWeekday=date.getDay(),nextCost=(nextWeekday===5||nextWeekday===6)?1000:1500;
+ const nextDate=date.toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'});
+ const remainder=balance;
+ out.classList.remove('hidden');
+ out.innerHTML=`
+ <div class="plan-result">
+  <h2>نتيجة تقسيم المبلغ</h2>
+  <div class="plan-summary">
+   <div class="stat"><small>عدد الأيام التي يغطيها المبلغ بالكامل</small><b>${fullyCovered} يوم</b></div>
+   <div class="stat"><small>المصروف خلال هذه الأيام</small><b>${fmt(spent)}</b></div>
+   <div class="stat"><small>المبلغ المتبقي</small><b>${fmt(remainder)}</b></div>
+   <div class="stat"><small>مصروف اليوم التالي</small><b>${fmt(nextCost)}</b></div>
+  </div>
+  <p class="muted">${fullyCovered?`سيكفيك المبلغ من تاريخ البداية حتى نهاية اليوم رقم ${fullyCovered}.`:'المبلغ لا يكفي لتغطية مصروف يوم كامل.'} ${remainder>0?`في ${planDayNames[nextWeekday]} ${nextDate} سيكون معك ${fmt(remainder)}، وهو أقل من المصروف المتوقع لذلك اليوم.`:`سيصبح الرصيد صفراً بعد الأيام المحسوبة.`}</p>
+  <h2 style="margin-top:14px">جدول الصرف اليومي</h2>
+  <table class="plan-table"><thead><tr><th>اليوم</th><th>التاريخ</th><th>المصروف</th><th>المتبقي</th></tr></thead><tbody>${rows.length?rows.join(''):'<tr><td colspan="4">لا توجد أيام ممولة بالكامل.</td></tr>'}</tbody></table>
+ </div>`;
+}
+$('planStart').value=localISODate(new Date());
+$('calculatePlan').onclick=calculatePlan;
+
+render();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW registration failed', err));
+  });
+}
+</script></body></html>
